@@ -550,7 +550,13 @@ public class ConnectionHelper implements AutoCloseable {
 	// Use a describe for files to avoid MAXSCANROW limits.
 	// (backed-out part of change 16390)
 	public List<IFileSpec> getChangeFiles(int id, int limit) throws Exception {
-		List<IFileSpec> files = connection.getChangelistFiles(id, limit);
+		List<IFileSpec> files;
+		// Avoid describe -m for old servers JENKINS-48433
+		if (!checkVersion(20141)) {
+			files = connection.getChangelistFiles(id);
+		} else {
+			files = connection.getChangelistFiles(id, limit);
+		}
 		return files;
 	}
 
@@ -592,13 +598,40 @@ public class ConnectionHelper implements AutoCloseable {
 		for (IProperty prop : values) {
 			if (key.equals(prop.getName())) {
 				String url = prop.getValue();
-				if (url.endsWith("/")) {
+				if (url != null && url.endsWith("/")) {
 					url = url.substring(0, url.length() - 1);
 				}
 				return url;
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get the latest change on the given path
+	 *
+	 * @param path Perforce depot path //foo/...
+	 * @return change number
+	 * @throws Exception push up stack
+	 */
+	public long getHead(String path) throws Exception {
+		List<IFileSpec> spec = FileSpecBuilder.makeFileSpecList(path);
+
+		GetChangelistsOptions opts = new GetChangelistsOptions();
+		opts.setMaxMostRecent(1);
+
+		List<IChangelistSummary> changes = connection.getChangelists(spec, opts);
+		if (!changes.isEmpty()) {
+			return changes.get(0).getId();
+		}
+		return -1;
+	}
+
+	public boolean hasFile(String depotPath) throws Exception {
+		List<IFileSpec> files = FileSpecBuilder.makeFileSpecList(depotPath);
+		GetDepotFilesOptions opts = new GetDepotFilesOptions();
+		List<IFileSpec> specs = connection.getDepotFiles(files, opts);
+		return validate.checkCatch(specs, "");
 	}
 
 	public ICommit getGraphCommit(String sha, String repo) throws P4JavaException {
@@ -831,10 +864,6 @@ public class ConnectionHelper implements AutoCloseable {
 			return;
 		}
 		listener.getLogger().println(msg);
-	}
-
-	public void stop() throws Exception {
-		connection.execMapCmd("admin", new String[]{"stop"}, null);
 	}
 
 	public boolean hasAborted() {

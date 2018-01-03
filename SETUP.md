@@ -58,7 +58,7 @@ In this mode the Workspace View is generated using the specified template worksp
 
 Many of the Workspace fields can include environment variables to help define their value.  Take the 'Worksapce name' often I use:
 
-    jenkins-${NODE_NAME}-${JOB_NAME}
+    jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}
     
 If the job is called 'foo' and built on a slave 'linux' it expands to:
 
@@ -82,11 +82,11 @@ Jenkins provides a set of environment variable and you can also define your own.
 
 The plugin allows the use of environemnt vaiables in fields like the Workspace view and Stream path.  For example:
 
-    //depot/main/proj/... //jenkins-${NODE_NAME}-${JOB_NAME}/...
+    //depot/main/proj/... //jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}/...
     
 or with a Matrix build you might have defined your own variables like `${OS}`.  Remember they can be used anywhere in the mapping:
 
-    //depot/main/${JOB_NAME}/bin.${OS}/... //jenkins-${NODE_NAME}-${JOB_NAME}-${OS}/bin/${OS}/... 
+    //depot/main/${JOB_NAME}/bin.${OS}/... //jenkins-${NODE_NAME}-${JOB_NAME}-${EXECUTOR_NUMBER}-${OS}/bin/${OS}/... 
 
 
 ## Populating
@@ -421,7 +421,7 @@ For example in a Pipeline script you can use:
 
     ${env.P4_CHANGELIST}
 
-For more details on using Workflow with the P4 Plugin please refer to the [Workflow](https://github.com/jenkinsci/workflow-plugin/blob/master/WORKFLOW.md) section.
+For more details on using Workflow with the P4 Plugin please refer to the [Workflow](https://github.com/jenkinsci/pipeline-plugin/blob/master/README.md) section.
 
 ## Troubleshooting
 

@@ -15,6 +15,9 @@ import org.jenkinsci.plugins.p4.changes.P4Revision;
 import org.jenkinsci.plugins.p4.client.ClientHelper;
 import org.jenkinsci.plugins.p4.client.ConnectionHelper;
 import org.jenkinsci.plugins.p4.credentials.P4BaseCredentials;
+import org.jenkinsci.plugins.p4.review.P4Review;
+import org.jenkinsci.plugins.p4.review.ReviewProp;
+import org.jenkinsci.plugins.p4.tasks.CheckoutStatus;
 import org.jenkinsci.plugins.p4.tasks.TaggingTask;
 import org.jenkinsci.plugins.p4.workspace.Expand;
 import org.jenkinsci.plugins.p4.workspace.Workspace;
@@ -22,6 +25,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletException;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +42,8 @@ public class TagAction extends AbstractScmTagAction {
 	private List<P4Ref> refChanges;
 
 	private P4Revision buildChange;
+	private P4Review review;
+	private File changelog;
 
 	private final String credential;
 	private final String p4port;
@@ -184,6 +190,13 @@ public class TagAction extends AbstractScmTagAction {
 		this.client = workspace.getFullName();
 		this.syncID = workspace.getSyncID();
 		this.charset = workspace.getCharset();
+
+		Expand expand = workspace.getExpand();
+		String id = expand.get(ReviewProp.REVIEW.toString());
+		if (id != null && !id.isEmpty()) {
+			String type = expand.get(ReviewProp.STATUS.toString());
+			review = new P4Review(id, CheckoutStatus.parse(type));
+		}
 	}
 
 	public String getPort() {
@@ -244,7 +257,14 @@ public class TagAction extends AbstractScmTagAction {
 	public static List<P4Ref> getLastChange(Run<?, ?> run, TaskListener listener, String syncID) {
 		List<P4Ref> changes = new ArrayList<>();
 
-		List<TagAction> actions = lastActions(run);
+		List<TagAction> actions;
+		// Check for actions until the build is complete
+		// Workaround for JENKINS-40722
+		do {
+			actions = lastActions(run);
+		} while(actions == null && run != null && run.isBuilding());
+
+
 		if (actions == null || syncID == null || syncID.isEmpty()) {
 			listener.getLogger().println("No previous build found...");
 			return changes;
@@ -292,10 +312,23 @@ public class TagAction extends AbstractScmTagAction {
 
 		// get last action, if no previous action then build now.
 		List<TagAction> actions = run.getActions(TagAction.class);
+
 		if (actions.isEmpty()) {
 			return null;
 		}
 
 		return actions;
+	}
+
+	public P4Review getReview() {
+		return review;
+	}
+
+	public void setChangelog(File changelog) {
+		this.changelog = changelog;
+	}
+
+	public File getChangelog() {
+		return changelog;
 	}
 }

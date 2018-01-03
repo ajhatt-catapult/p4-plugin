@@ -9,27 +9,27 @@ import jenkins.scm.api.SCMHeadObserver;
 import jenkins.scm.api.SCMRevision;
 import jenkins.scm.api.SCMSource;
 import jenkins.scm.api.SCMSourceCriteria;
+import jenkins.scm.api.SCMSourceOwner;
 import org.jenkinsci.plugins.p4.PerforceScm;
 import org.jenkinsci.plugins.p4.browsers.P4Browser;
 import org.jenkinsci.plugins.p4.changes.P4ChangeRef;
-import org.jenkinsci.plugins.p4.client.ClientHelper;
+import org.jenkinsci.plugins.p4.client.ConnectionHelper;
 import org.jenkinsci.plugins.p4.populate.Populate;
 import org.jenkinsci.plugins.p4.review.P4Review;
 import org.jenkinsci.plugins.p4.tasks.CheckoutStatus;
 import org.jenkinsci.plugins.p4.workspace.ManualWorkspaceImpl;
 import org.jenkinsci.plugins.p4.workspace.Workspace;
 import org.jenkinsci.plugins.p4.workspace.WorkspaceSpec;
+import org.jenkinsci.plugins.workflow.multibranch.WorkflowBranchProjectFactory;
+import org.jenkinsci.plugins.workflow.multibranch.WorkflowMultiBranchProject;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 public abstract class AbstractP4ScmSource extends SCMSource {
-
-	private static Logger logger = Logger.getLogger(AbstractP4ScmSource.class.getName());
-	public static final String scmSourceClient = "jenkins-master";
 
 	protected final String credential;
 
@@ -38,8 +38,7 @@ public abstract class AbstractP4ScmSource extends SCMSource {
 	private String format;
 	private Populate populate;
 
-	public AbstractP4ScmSource(String id, String credential) {
-		super(id);
+	public AbstractP4ScmSource(String credential) {
 		this.credential = credential;
 	}
 
@@ -92,14 +91,25 @@ public abstract class AbstractP4ScmSource extends SCMSource {
 	public Workspace getWorkspace(List<P4Path> paths) {
 		String client = getFormat();
 
+		String scriptPath = getScriptPathOrDefault("Jenkinsfile");
 		StringBuffer sb = new StringBuffer();
 		for (P4Path path : paths) {
-			String view = path.getPath() + "/Jenkinsfile" + " //" + client + "/Jenkinsfile";
+			String view = String.format("%s/%s //%s/%s", path.getPath(), scriptPath, "${P4_CLIENT}", scriptPath);
 			sb.append(view).append("\n");
 		}
 
 		WorkspaceSpec spec = new WorkspaceSpec(sb.toString(), null);
 		return new ManualWorkspaceImpl(getCharset(), false, client, spec);
+	}
+
+	protected String getScriptPathOrDefault(String defaultScriptPath) {
+		SCMSourceOwner owner = getOwner();
+		if (owner instanceof WorkflowMultiBranchProject) {
+			WorkflowMultiBranchProject branchProject = (WorkflowMultiBranchProject) owner;
+			WorkflowBranchProjectFactory branchProjectFactory = (WorkflowBranchProjectFactory) branchProject.getProjectFactory();
+			return branchProjectFactory.getScriptPath();
+		}
+		return defaultScriptPath;
 	}
 
 	@Override
@@ -146,12 +156,13 @@ public abstract class AbstractP4ScmSource extends SCMSource {
 					SCMRevision revision = getRevision(head, listener);
 					observer.observe(head, revision);
 				} else {
-					ClientHelper p4 = new ClientHelper(getOwner(), credential, listener, scmSourceClient, charset);
-					SCMSourceCriteria.Probe probe = new P4Probe(p4, head);
-					if (criteria.isHead(probe, listener)) {
-						// get revision and add observe
-						SCMRevision revision = getRevision(head, listener);
-						observer.observe(head, revision);
+					try (ConnectionHelper p4 = new ConnectionHelper(getOwner(), credential, listener)) {
+						SCMSourceCriteria.Probe probe = new P4Probe(p4, head);
+						if (criteria.isHead(probe, listener)) {
+							// get revision and add observe
+							SCMRevision revision = getRevision(head, listener);
+							observer.observe(head, revision);
+						}
 					}
 				}
 				// check for user abort
@@ -163,12 +174,19 @@ public abstract class AbstractP4ScmSource extends SCMSource {
 	}
 
 	protected List<String> getIncludePaths() {
-		String[] array = includes.split("[\\r\\n]+");
+		return toLines(includes);
+	}
+
+	protected List<String> toLines(String value) {
+		if (value == null) {
+			return new ArrayList<>();
+		}
+		String[] array = value.split("[\\r\\n]+");
 		return Arrays.asList(array);
 	}
 
 	public P4Revision getRevision(P4Head head, TaskListener listener) throws Exception {
-		try (ClientHelper p4 = new ClientHelper(getOwner(), credential, listener, scmSourceClient, charset)) {
+		try (ConnectionHelper p4 = new ConnectionHelper(getOwner(), credential, listener)) {
 
 			// TODO look for graph revisions too
 

@@ -24,7 +24,7 @@ public class SpecWorkspaceImpl extends Workspace implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private final String name;
+	private String name;
 	private final String specPath;
 
 	private static Logger logger = Logger.getLogger(SpecWorkspaceImpl.class.getName());
@@ -32,6 +32,11 @@ public class SpecWorkspaceImpl extends Workspace implements Serializable {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getSpecPath() {
@@ -109,7 +114,8 @@ public class SpecWorkspaceImpl extends Workspace implements Serializable {
 		 * @return suggestion
 		 */
 		public AutoCompletionCandidates doAutoCompleteSpecPath(@QueryParameter String value) {
-			return NavigateHelper.getPath(value);
+			NavigateHelper nav = new NavigateHelper(10);
+			return nav.getCandidates(value);
 		}
 
 		public FormValidation doCheckSpecPath(@QueryParameter String value) {

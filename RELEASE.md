@@ -1,5 +1,102 @@
 ## Release notes
 
+### Release 1.8.4 (major features/fixes)
+
+[@23425](https://swarm.workshop.perforce.com/changes/23425) - Backwards compatibility for p4 describe.  Max limit on files for p4 describe (-m flag) was introduced in 2014.1  JENKINS-48433
+
+[@23403](https://swarm.workshop.perforce.com/changes/23403) - Update P4Java 2017.2.1601181  P4Java fix to throw p4 print warnings used during lightweight checkout.
+
+[@23373](https://swarm.workshop.perforce.com/changes/23373) - Lightweight checkout support.  Implementation for scm-api classes SCMFile and SCMFileSystem, allowing Jenkins to navigate Perforce within the scope of a workspace view.  Lightweight checkout uses a tempoary Perforce workspace to naviagete and fetch the files.  The client name and client view mapping will be modified from a template name e.g. jenkins-${NODE_NAME}-${JOB_NAME} to the tempoary name jenkinsTemp-UUID.  Alternativly if a user as used ${P4_CLIENT} in the client mapping this will remain unchanged and will be get expanded during the job run.  JENKINS-45999  JENKINS-46269
+
+[@23320](https://swarm.workshop.perforce.com/changes/23320) - Remove deprecated ID for SCMSource constructor.
+
+
+### Release 1.8.3 (major features/fixes)
+
+[@23263](https://swarm.workshop.perforce.com/changes/23263) - Update NavigateHelper for future use.
+
+[@23261](https://swarm.workshop.perforce.com/changes/23261) - Backwards compatibility for new Mappings field in MultiBranch.
+
+
+### Release 1.8.2 (major features/fixes)
+
+[@23239](https://swarm.workshop.perforce.com/changes/23239) - Add configuration parameter for choosing whether to allow auto-submission of config changes to perforce.  This can avoid creating floods of changelists at the cost of requiring a manual changelist submit. A scheduled task may be alleviate the need to manually submit the updated changes while still reducing the number of changelists created.
+
+[@23234](https://swarm.workshop.perforce.com/changes/23234) - Avoid resetting workspace root during polling operation.  Ideally, workspaces shouldn't need to be reconfigured every poll, but adjusting the polling logic to only create-if-not-exists is beyond my scope.  JENKINS-46908
+
+[@23218](https://swarm.workshop.perforce.com/changes/23218) - Merge pull request #63 from ADTRAN/JENKINS-34052. JENKINS-34052 Poll for concurrent jobs
+
+[@23217](https://swarm.workshop.perforce.com/changes/23217) - Add the ability to provide a view spec to Helix Branches SCM Pr/61. Review Pr/64
+
+[@23216](https://swarm.workshop.perforce.com/changes/23216) - Allow expandedDesc to be used if only Description has been set. This can occur in the "Save Configuration" beta functionality.
+
+
+### Release 1.8.1 (major features/fixes)
+
+[@23192](https://swarm.workshop.perforce.com/changes/23192) - Workaround for EXECUTOR_NUMBER not being set.
+
+[@23190](https://swarm.workshop.perforce.com/changes/23190) - Merge pull request #62 from fbyrne/standardize-nodename-var.  Standardize the evaluation of what NODE_NAME in p4 workspace name generation.
+
+[@23155](https://swarm.workshop.perforce.com/changes/23155) - Remove Workspace cloning for better concurrent builds.  Remove Workspace cloning and encourage users to make use of EXECUTOR_NUMBER in the Jenkins job name.  JENKINS-41432
+
+[@23071](https://swarm.workshop.perforce.com/changes/23071) - Fix for Swarm P4Approve step; use ApproveState.name not id.
+
+
+### Release 1.8.0 (major features/fixes)
+
+[@23042](https://swarm.workshop.perforce.com/changes/23042) - Disable BOM addition to UTF8 files.  https://github.com/p4paul/p4-jenkins/issues/32
+
+[@23024](https://swarm.workshop.perforce.com/changes/23024) - Merge pull request #59 from fbyrne/JENKINS-45657.  JENKINS-45657 Recreation of pull request
+
+[@23018](https://swarm.workshop.perforce.com/changes/23018) - Support null changelogFile if checkout sets changelog:false.  JENKINS-46352
+
+[@23017](https://swarm.workshop.perforce.com/changes/23017) - **MultiBranch** configuration cleanup.  Remove BETA, hide standard options in Advanced group and added isGraphCompatible check in Populate Descriptor.
+
+[@23016](https://swarm.workshop.perforce.com/changes/23016) - Draft docs for **Global Library** and file for MultiBranch.
+
+[@22999](https://swarm.workshop.perforce.com/changes/22999) - Fix sync options on FlushOnly and CheckOnly.  JENKINS-46352
+
+[@22987](https://swarm.workshop.perforce.com/changes/22987) - Clean up changelogFilename reporting for HUDSON\_CHANGELOG\_FILE.  JENKINS-37442
+
+[@22986](https://swarm.workshop.perforce.com/changes/22986) - Copy environment map to EnvVars.  JENKINS-37584
+
+
+### Release 1.7.7 (major features/fixes)
+
+[@22971](https://swarm.workshop.perforce.com/changes/22971) - Update p4java 2017.2.1577651.  Server Property sequence fix (used by Swarm URL).
+
+[@22970](https://swarm.workshop.perforce.com/changes/22970) - Merge pull request #57 from jfperusse-bhvr/fix-changelog-errors. Fix changelog issues caused by NullPointerException in getSwarm. JENKINS-47336
+
+
+### Release 1.7.6 (major features/fixes)
+
+[@22952](https://swarm.workshop.perforce.com/changes/22952) - POM commons-lang3:3.5 used at runtime
+
+[@22942](https://swarm.workshop.perforce.com/changes/22942) - POM Update.  Remove dependancy on workflow-aggregator and re-add 'test' dependancies for pipeline/workflow. 
+
+[@22934](https://swarm.workshop.perforce.com/changes/22934) - Approve Step: Added description and default fields.
+
+[@22928](https://swarm.workshop.perforce.com/changes/22928) - Swarm approve step for Pipeline and FreeStyle jobs.
+
+[@22926](https://swarm.workshop.perforce.com/changes/22926) - Expose P4\_REVIEW and P4\_REVIEW\_STATUS.  Extended test coverage and removed duplicate code for building the environment.
+
+[@22915](https://swarm.workshop.perforce.com/changes/22915) - Advanced AllHosts login option (login -a)
+
+[@22893](https://swarm.workshop.perforce.com/changes/22893) - Merge pull request #56 from jfperusse-bhvr/fix-unshelve-delete-exclusive.  Manually delete exclusively locked files for reviews.  JENKINS-47141
+
+[@22866](https://swarm.workshop.perforce.com/changes/22866) - Merge pull request #55 from jenkinsci/hth - Global Pipeline Library support. JENKINS-46121 JENKINS-46550
+
+[@22858](https://swarm.workshop.perforce.com/changes/22858) - Merge pull request #54 from mihailogazda/master.  P4Unshelve build step can now be skipped successfully if the changelist ID is not set.
+
+[@22856](https://swarm.workshop.perforce.com/changes/22856) - Remove guessBrowser() and lookup browser when used. guessBrowser() gets called a lot and each lookup opens a Perforce connection. JENKINS-46810
+
+[@22841](https://swarm.workshop.perforce.com/changes/22841) - Switch to `P4.Swarm.URL` property for Swarm url. JENKINS-45464
+
+[@22840](https://swarm.workshop.perforce.com/changes/22840) - Merge pull request #49 from aosterkamp/master - add support for "P4Trigger" declarative pipeline trigger
+
+[@22830](https://swarm.workshop.perforce.com/changes/22830) - Prevent log spam by changing log level to fine.  pr/49 @rebnridgway
+
+
 ### Release 1.7.5 (major features/fixes)
 
 [@22822](https://swarm.workshop.perforce.com/changes/22822) - Pipeline trigger fixes for Graph.  Fetch JobList outside ExecutorService.
