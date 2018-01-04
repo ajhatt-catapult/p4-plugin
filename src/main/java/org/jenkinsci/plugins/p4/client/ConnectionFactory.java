@@ -49,12 +49,15 @@ public class ConnectionFactory {
 		// Add trust for SSL connections
 		if (config.isSsl()) {
 			String serverTrust = iserver.getTrust();
+			/*
 			if (!serverTrust.equalsIgnoreCase(config.getTrust())) {
 				logger.warning("Trust mismatch! Server fingerprint: "
 						+ serverTrust);
 			} else {
 				iserver.addTrust(config.getTrust());
 			}
+			*/
+			iserver.addTrust(iserver.getTrust());
 		}
 
 		// Connect and update current P4 connection
@@ -70,6 +73,7 @@ public class ConnectionFactory {
 			IOptionsServer iserver = getRawConnection(config);
 			if (config.isSsl()) {
 				String serverTrust = iserver.getTrust();
+				/*
 				if (!serverTrust.equalsIgnoreCase(config.getTrust())) {
 					return FormValidation
 							.error("Trust mismatch! Server fingerprint: "
@@ -77,6 +81,8 @@ public class ConnectionFactory {
 				} else {
 					iserver.addTrust(config.getTrust());
 				}
+				*/
+				iserver.addTrust(iserver.getTrust());
 			}
 		} catch (Exception e) {
 			StringBuffer sb = new StringBuffer();
