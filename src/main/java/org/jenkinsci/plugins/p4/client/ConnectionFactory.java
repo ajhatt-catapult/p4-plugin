@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.p4.client;
 import com.perforce.p4java.PropertyDefs;
 import com.perforce.p4java.impl.mapbased.rpc.RpcPropertyDefs;
 import com.perforce.p4java.option.UsageOptions;
+import com.perforce.p4java.option.server.TrustOptions;
 import com.perforce.p4java.server.IOptionsServer;
 import com.perforce.p4java.server.ServerFactory;
 import hudson.util.FormValidation;
@@ -57,7 +58,7 @@ public class ConnectionFactory {
 				iserver.addTrust(config.getTrust());
 			}
 			*/
-			iserver.addTrust(iserver.getTrust());
+			iserver.addTrust(iserver.getTrust(), new TrustOptions(true, false, true));
 		}
 
 		// Connect and update current P4 connection
@@ -82,7 +83,7 @@ public class ConnectionFactory {
 					iserver.addTrust(config.getTrust());
 				}
 				*/
-				iserver.addTrust(iserver.getTrust());
+				iserver.addTrust(iserver.getTrust(), new TrustOptions(true, false, true));
 			}
 		} catch (Exception e) {
 			StringBuffer sb = new StringBuffer();
